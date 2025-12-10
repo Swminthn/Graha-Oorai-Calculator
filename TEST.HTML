@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graha Oorai Calculator | கிரக ஓரை</title>
+    
+    <!-- Google Fonts for Tamil -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Madurai:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config for Custom Colors (Updated based on Logo) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        oorai: {
+                            // Dark Brown from the center/outline of the logo
+                            dark: '#3E2723', 
+                            // Cream background
+                            light: '#FFF8E1', 
+                            // Gold from the petals
+                            gold: '#FFC107',
+                            // Darker Gold for text
+                            goldText: '#B78900',
+                            // YouTube Red
+                            yt: '#FF0000'
+                        }
+                    },
+                    fontFamily: {
+                        tamil: ['"Hind Madurai"', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #fdfbf7;
+            font-family: 'Hind Madurai', sans-serif;
+            background-image: radial-gradient(#eecfa1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(62, 39, 35, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .current-row {
+            background-color: #FFF8E1 !important; /* Light Gold bg */
+            border-left: 4px solid #FFC107; /* Gold border */
+            font-weight: bold;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37; 
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-8 px-4 text-gray-800">
+
+    <!-- Header -->
+    <header class="w-full max-w-md text-center mb-6">
+        <h1 class="text-3xl font-bold text-oorai-dark mb-1">கிரக ஓரை காலம்</h1>
+        <p class="text-oorai-goldText text-sm font-semibold tracking-wide">Graha Oorai Calculator</p>
+    </header>
+
+    <!-- Main Display Card -->
+    <main class="w-full max-w-md relative">
+        
+        <!-- Live Time & Date -->
+        <div class="bg-oorai-dark text-white rounded-t-2xl p-5 text-center shadow-lg relative overflow-hidden">
+            <!-- Subtle Gold Glow in background -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-yellow-500/10 to-transparent pointer-events-none"></div>
+            
+            <div id="live-time" class="text-4xl font-bold tracking-wider mb-1 relative z-10">--:--:--</div>
+            <div id="live-date" class="text-sm text-yellow-100 font-light relative z-10">Loading...</div>
+            <div id="effective-day" class="text-xs text-oorai-gold mt-2 font-mono uppercase tracking-widest relative z-10"></div>
+        </div>
+
+        <!-- Current Oorai Info -->
+        <div class="glass-card p-6 mb-6 rounded-b-2xl rounded-t-none text-center shadow-xl relative overflow-hidden">
+            <!-- Decorative Gold Circle -->
+            <div class="absolute -top-12 -right-12 w-40 h-40 bg-yellow-400 rounded-full opacity-10 z-0 blur-2xl"></div>
+            <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-yellow-600 rounded-full opacity-5 z-0 blur-xl"></div>
+            
+            <div class="relative z-10">
+                <p class="text-gray-400 text-xs uppercase tracking-widest font-bold mb-3">தற்போதைய ஓரை (Current Oorai)</p>
+                
+                <h2 id="oorai-name-ta" class="text-5xl font-bold text-oorai-dark mb-1">--</h2>
+                <h3 id="oorai-name-en" class="text-xl text-oorai-goldText font-medium mb-5">--</h3>
+                
+                <!-- Status Badge -->
+                <div id="oorai-status" class="inline-flex items-center px-5 py-2 rounded-full text-sm font-bold shadow-sm transition-all duration-300 transform hover:scale-105 mb-6">
+                    Loading...
+                </div>
+
+                <!-- New Feature: Do's and Don'ts Section -->
+                <div class="grid grid-cols-2 gap-3 text-left mb-6">
+                    <!-- Do's -->
+                    <div class="bg-green-50/80 border border-green-100 rounded-xl p-3 shadow-sm backdrop-blur-sm">
+                        <div class="flex items-center gap-1 mb-1">
+                            <span class="text-green-600 text-xs">✅</span>
+                            <span class="text-[10px] uppercase font-bold text-green-800 tracking-wider">நன்மைகள் (Do)</span>
+                        </div>
+                        <p id="oorai-dos" class="text-xs font-semibold text-gray-700 leading-relaxed">
+                            Loading...
+                        </p>
+                    </div>
+
+                    <!-- Don'ts -->
+                    <div class="bg-red-50/80 border border-red-100 rounded-xl p-3 shadow-sm backdrop-blur-sm">
+                        <div class="flex items-center gap-1 mb-1">
+                            <span class="text-red-600 text-xs">❌</span>
+                            <span class="text-[10px] uppercase font-bold text-red-800 tracking-wider">தவிர்க்க (Don't)</span>
+                        </div>
+                        <p id="oorai-donts" class="text-xs font-semibold text-gray-700 leading-relaxed">
+                            Loading...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Next Oorai Preview -->
+                <div class="pt-4 border-t border-gray-100 flex justify-between items-center text-sm">
+                    <span class="text-gray-400">அடுத்த ஓரை (Next):</span>
+                    <span id="next-oorai" class="font-bold text-oorai-dark">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- YouTube Subscription Button (New Feature) -->
+        <a href="https://www.youtube.com/@Gnana-deepam?sub_confirmation=1" target="_blank" 
+           class="group block w-full mb-6 transform transition-all hover:-translate-y-1">
+            <div class="bg-white border border-red-100 rounded-xl p-3 shadow-md flex items-center justify-between hover:shadow-lg hover:border-red-200 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="bg-red-50 p-2 rounded-full group-hover:bg-red-100 transition-colors">
+                        <!-- YouTube Icon -->
+                        <svg class="w-6 h-6 text-oorai-yt" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                        </svg>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-xs text-gray-500 font-semibold">Get Daily Updates</p>
+                        <p class="text-sm font-bold text-gray-800">Subscribe to Gnana Deepam</p>
+                    </div>
+                </div>
+                <div class="bg-oorai-yt text-white text-xs font-bold px-4 py-2 rounded-lg group-hover:bg-red-600 transition-colors">
+                    Subscribe
+                </div>
+            </div>
+        </a>
+
+        <!-- Schedule Table -->
+        <div class="glass-card overflow-hidden shadow-md transition-all duration-300" id="schedule-card">
+            <div class="bg-white/50 px-5 py-4 flex justify-between items-center cursor-pointer border-b border-gray-100" onclick="toggleTable()">
+                <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-oorai-dark">இன்றைய அட்டவணை</h3>
+                    <span class="text-xs text-gray-400">(Today's Schedule)</span>
+                </div>
+                <span id="table-arrow" class="text-xl text-oorai-goldText transition-transform duration-300">▼</span>
+            </div>
+            
+            <div id="schedule-container" class="transition-all duration-500 max-h-96 overflow-y-auto">
+                
+                <!-- Loading State -->
+                <div id="schedule-loading" class="flex flex-col items-center justify-center py-12 space-y-3">
+                    <div class="w-8 h-8 border-4 border-yellow-200 border-t-yellow-500 rounded-full animate-spin"></div>
+                    <p class="text-xs text-gray-400 font-semibold tracking-wider animate-pulse">LOADING SCHEDULE...</p>
+                </div>
+
+                <table id="schedule-table" class="w-full text-left border-collapse hidden">
+                    <thead class="bg-oorai-dark text-white sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="p-3 text-xs font-medium uppercase tracking-wider text-yellow-100">Time</th>
+                            <th class="p-3 text-xs font-medium uppercase tracking-wider text-yellow-100">Oorai</th>
+                            <th class="p-3 text-xs font-medium uppercase tracking-wider text-right text-yellow-100">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-body" class="text-sm text-gray-700 divide-y divide-gray-100 bg-white">
+                        <!-- Rows generated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <footer class="mt-8 text-center text-xs text-gray-400 pb-4">
+            <p class="mb-1">* Day starts at 6:00 AM (Sunrise Logic)</p>
+            <p class="opacity-50">Gnana Deepam © 2025</p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- 1. CONFIGURATION & DATA ---
+
+        const PLANETS = [
+            { 
+                id: 0, 
+                ta: 'சூரியன்', 
+                en: 'Suriyan (Sun)', 
+                isSuba: false,
+                dos: 'அரசு காரியம், வழக்கு, உயில் எழுதுதல், மருந்து உண்ணுதல்.',
+                donts: 'புது வீடு குடிபுக, சுபகாரியம், ஒப்பந்தம் செய்தல்.' 
+            },
+            { 
+                id: 1, 
+                ta: 'சுக்கிரன்', 
+                en: 'Sukran (Venus)', 
+                isSuba: true,
+                dos: 'திருமணம், ஆடை ஆபரணம் வாங்க, வாகனம், பயணம்.',
+                donts: 'துக்க காரியங்கள், பழைய பொருட்களை விற்றல்.' 
+            },
+            { 
+                id: 2, 
+                ta: 'புதன்', 
+                en: 'Budhan (Mercury)', 
+                isSuba: true,
+                dos: 'கல்வி, எழுத்து வேலை, வியாபாரம், கணக்கு வழக்கு.',
+                donts: 'பொய் சொல்லுதல், வம்பு வழக்கு, ஏமாற்றுதல்.' 
+            },
+            { 
+                id: 3, 
+                ta: 'சந்திரன்', 
+                en: 'Chandran (Moon)', 
+                isSuba: true,
+                dos: 'பயணம், உணவு, திருமணம், தானியம் வாங்க, கலை.',
+                donts: 'கடினமான செயல்கள், சண்டை, வாக்குவாதம்.' 
+            },
+            { 
+                id: 4, 
+                ta: 'சனி', 
+                en: 'Sani (Saturn)', 
+                isSuba: false,
+                dos: 'கடன் அடைக்க, பழைய பொருள் விற்க, இரும்பு தொழில்.',
+                donts: 'சுபகாரியம், புது முயற்சி, பயணம், திருமணம்.' 
+            },
+            { 
+                id: 5, 
+                ta: 'குரு', 
+                en: 'Guru (Jupiter)', 
+                isSuba: true,
+                dos: 'அனைத்து சுபகாரியம், பொன் வாங்க, வங்கி, மந்திரம்.',
+                donts: 'அசுப காரியங்கள் (பெரும்பாலும் விலக்கு இல்லை).' 
+            },
+            { 
+                id: 6, 
+                ta: 'செவ்வாய்', 
+                en: 'Angarakan (Mars)', 
+                isSuba: false,
+                dos: 'நிலம் வாங்க, கடன் வசூல், ஆயுதம், சத்திர சிகிச்சை.',
+                donts: 'திருமணம், பயணம், சமாதானம் பேசுதல்.' 
+            }
+        ];
+
+        const DAY_RULERS = {
+            0: 0, 1: 3, 2: 6, 3: 2, 4: 5, 5: 1, 6: 4
+        };
+
+        const WEEKDAYS_TA = ["ஞாயிறு", "திங்கள்", "செவ்வாய்", "புதன்", "வியாழன்", "வெள்ளி", "சனி"];
+        
+        // State to track if schedule has been loaded
+        let isScheduleLoaded = false;
+
+        // --- 2. LOGIC FUNCTIONS ---
+
+        function getAstrologicalData(dateObj) {
+            let dayIndex = dateObj.getDay(); 
+            let hour = dateObj.getHours();   
+            
+            let effectiveDayIndex = dayIndex;
+            let hoursSince6AM = 0;
+
+            if (hour < 6) {
+                effectiveDayIndex = (dayIndex - 1 + 7) % 7; 
+                hoursSince6AM = 18 + hour;
+            } else {
+                hoursSince6AM = hour - 6;
+            }
+
+            const startingPlanetIndex = DAY_RULERS[effectiveDayIndex];
+            const currentOoraiIndex = (startingPlanetIndex + hoursSince6AM) % 7;
+            const nextOoraiIndex = (currentOoraiIndex + 1) % 7;
+
+            return {
+                effectiveDayIndex,
+                currentOorai: PLANETS[currentOoraiIndex],
+                nextOorai: PLANETS[nextOoraiIndex],
+                currentHour: hour
+            };
+        }
+
+        function formatTime12hr(hour) {
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour} ${period}`;
+        }
+
+        // --- 3. UI UPDATE FUNCTIONS ---
+
+        function updateClock() {
+            const now = new Date();
+            
+            // Update Time
+            document.getElementById('live-time').innerText = now.toLocaleTimeString('en-US', { hour12: true });
+            
+            // Update Date
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('live-date').innerText = now.toLocaleDateString('en-US', dateOptions);
+
+            // Run Oorai Logic
+            const data = getAstrologicalData(now);
+            renderOoraiCard(data);
+            
+            // Handle Schedule Loading (Only runs once)
+            if (!isScheduleLoaded) {
+                isScheduleLoaded = true;
+                // Add the requested delay
+                setTimeout(() => {
+                    renderScheduleTable(data.effectiveDayIndex, now.getHours());
+                    // Hide loading, show table
+                    document.getElementById('schedule-loading').classList.add('hidden');
+                    document.getElementById('schedule-table').classList.remove('hidden');
+                    document.getElementById('schedule-table').classList.add('animate-fade-in'); // Optional CSS animation class
+                }, 1200); // 1.2 second delay as requested
+            } else {
+                // If loaded, just ensure highlighting is correct without re-rendering everything
+                // Or lazily re-render if hour changed. For simplicity, we re-render highlighting here if needed, 
+                // but re-rendering the whole table is safer to keep sync.
+                // We'll just check if the current minute is 00:00 to refresh highlighting
+                if (now.getMinutes() === 0 && now.getSeconds() === 0) {
+                     renderScheduleTable(data.effectiveDayIndex, now.getHours());
+                }
+            }
+
+            // Update Effective Day debug text
+            const isNightShift = now.getHours() < 6;
+            const dayName = WEEKDAYS_TA[data.effectiveDayIndex];
+            const suffix = isNightShift ? "(நேற்றைய இரவு கணக்கு)" : "";
+            document.getElementById('effective-day').innerText = `${dayName} கிழமை ${suffix}`;
+        }
+
+        function renderOoraiCard(data) {
+            const planet = data.currentOorai;
+            const statusEl = document.getElementById('oorai-status');
+
+            document.getElementById('oorai-name-ta').innerText = planet.ta;
+            document.getElementById('oorai-name-en').innerText = planet.en;
+            document.getElementById('next-oorai').innerText = `${data.nextOorai.ta} (${data.nextOorai.en})`;
+            
+            // UPDATE DO'S AND DON'TS
+            document.getElementById('oorai-dos').innerText = planet.dos;
+            document.getElementById('oorai-donts').innerText = planet.donts;
+
+            if (planet.isSuba) {
+                statusEl.className = "inline-flex items-center px-5 py-2 rounded-full text-sm font-bold shadow-sm bg-green-100 text-green-800 border border-green-200 mb-6";
+                statusEl.innerHTML = `
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                    சுப ஓரை (Good Time)
+                `;
+                document.getElementById('oorai-name-ta').className = "text-5xl font-bold text-green-700 mb-1";
+            } else {
+                statusEl.className = "inline-flex items-center px-5 py-2 rounded-full text-sm font-bold shadow-sm bg-red-50 text-red-800 border border-red-200 mb-6";
+                statusEl.innerHTML = `
+                    <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                    அசுப ஓரை (Not Ideal)
+                `;
+                document.getElementById('oorai-name-ta').className = "text-5xl font-bold text-red-800 mb-1";
+            }
+        }
+
+        function renderScheduleTable(effectiveDayIndex, currentSystemHour) {
+            const tableBody = document.getElementById('schedule-body');
+            tableBody.innerHTML = '';
+            
+            const startingPlanetIndex = DAY_RULERS[effectiveDayIndex];
+            
+            for (let i = 0; i < 24; i++) {
+                let startHourRaw = 6 + i; 
+                let endHourRaw = 7 + i;
+                let actualSystemHour = startHourRaw % 24;
+                let isIravu = i >= 12;
+                
+                // Add Night Divider
+                if (i === 12) {
+                     const dividerRow = document.createElement('tr');
+                     dividerRow.innerHTML = `<td colspan="3" class="bg-gray-100 text-center font-bold text-xs py-2 text-gray-500 uppercase tracking-widest border-t border-b border-gray-200">இரவு ஆரம்பம் (Night Starts) 🌙</td>`;
+                     tableBody.appendChild(dividerRow);
+                }
+
+                let planetIndex = (startingPlanetIndex + i) % 7;
+                let planet = PLANETS[planetIndex];
+
+                const row = document.createElement('tr');
+                
+                if (actualSystemHour === currentSystemHour) {
+                    row.className = "current-row";
+                } else {
+                    row.className = `border-b border-gray-50 ${isIravu ? 'bg-gray-50/50' : ''}`;
+                }
+
+                const startTimeStr = formatTime12hr(startHourRaw);
+                const endTimeStr = formatTime12hr(endHourRaw);
+
+                let statusHtml = planet.isSuba 
+                    ? `<span class="text-green-700 font-bold text-xs bg-green-100 px-2 py-1 rounded-md border border-green-200">சுப ஓரை</span>` 
+                    : `<span class="text-gray-300 text-xs font-mono">---</span>`;
+
+                row.innerHTML = `
+                    <td class="p-3 whitespace-nowrap font-mono text-xs font-semibold text-gray-600">
+                        ${startTimeStr} - ${endTimeStr}
+                    </td>
+                    <td class="p-3">
+                        <div class="font-bold text-oorai-dark text-base">${planet.ta}</div>
+                        <div class="text-[10px] text-gray-400 font-medium uppercase tracking-wide">${planet.en.split(' ')[0]}</div>
+                    </td>
+                    <td class="p-3 text-right">
+                        ${statusHtml}
+                    </td>
+                `;
+
+                tableBody.appendChild(row);
+
+                if (actualSystemHour === currentSystemHour) {
+                    // Small delay to ensure table is visible before scrolling
+                    setTimeout(() => {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                }
+            }
+        }
+
+        function toggleTable() {
+            const container = document.getElementById('schedule-container');
+            const arrow = document.getElementById('table-arrow');
+            
+            // If hidden, show it
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                arrow.style.transform = "rotate(180deg)";
+            } else {
+                // To hide, we can add a specific class or just toggle. 
+                // Since we used logic to remove loading, let's just toggle visibility
+                // Note: The structure changed slightly with loading state, so let's use a simpler visibility toggle
+                // on the parent card or just use height logic. 
+                
+                // Simpler approach for this specific structure:
+                if (container.style.maxHeight === '0px') {
+                    container.style.maxHeight = '24rem'; // 96 * 0.25rem
+                    arrow.style.transform = "rotate(0deg)";
+                } else {
+                    container.style.maxHeight = '0px';
+                    arrow.style.transform = "rotate(-90deg)";
+                }
+            }
+        }
+        
+        // Custom toggle implementation for the new structure
+        document.querySelector('.glass-card[onclick="toggleTable()"]')?.setAttribute('onclick', ''); // Remove inline
+        document.getElementById('schedule-card').querySelector('div:first-child').onclick = function() {
+            const container = document.getElementById('schedule-container');
+            const arrow = document.getElementById('table-arrow');
+            if (container.classList.contains('max-h-0')) {
+                 container.classList.remove('max-h-0', 'opacity-0');
+                 container.classList.add('max-h-96', 'opacity-100');
+                 arrow.style.transform = "rotate(0deg)";
+            } else {
+                 container.classList.add('max-h-0', 'opacity-0');
+                 container.classList.remove('max-h-96', 'opacity-100');
+                 arrow.style.transform = "rotate(-90deg)";
+            }
+        };
+        // Set initial state
+        document.getElementById('schedule-container').classList.remove('hidden'); // Ensure it's not hidden by tailwind util
+
+        // Initialize
+        updateClock();
+        setInterval(updateClock, 1000);
+
+    </script>
+</body>
+</html>
